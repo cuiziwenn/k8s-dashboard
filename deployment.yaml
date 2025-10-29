@@ -1,0 +1,135 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: k8s-ui-sa
+  namespace: apps
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: k8s-ui-role
+  namespace: apps
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["*"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: k8s-ui-binding
+  namespace: apps
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: k8s-ui-role
+subjects:
+- kind: ServiceAccount
+  name: k8s-ui-sa
+  namespace: apps
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: k8s-ui-admin
+  namespace: apps
+type: Opaque
+stringData:
+  admin-username: admin
+  admin-email: c302894887@163.com
+  admin-password: admin  # 修改为你的密码
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-ui
+  namespace: apps
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8s-ui
+  template:
+    metadata:
+      labels:
+        app: k8s-ui
+    spec:
+      serviceAccountName: k8s-ui-sa
+      containers:
+      - name: k8s-ui
+        image: cuiziwenn/k8s-ui:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DB_HOST
+          value: mysql-service
+        - name: DB_NAME
+          value: k8sui
+        - name: DB_USER
+          value: k8sui
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: mysql-password
+        - name: SECRET_KEY
+          value: "your-secret-key-change-in-production"
+        - name: DEBUG
+          value: "False"
+        # 管理员账号配置
+        - name: ADMIN_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: k8s-ui-admin
+              key: admin-username
+        - name: ADMIN_EMAIL
+          valueFrom:
+            secretKeyRef:
+              name: k8s-ui-admin
+              key: admin-email
+        - name: ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: k8s-ui-admin
+              key: admin-password
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: k8s-ui-svc
+  namespace: apps
+spec:
+  selector:
+    app: k8s-ui
+  ports:
+  - port: 80
+    targetPort: 8000
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: k8s-ui-ingress
+  namespace: apps
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: k8s.svss.cn
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: k8s-ui-svc
+            port:
+              number: 80
