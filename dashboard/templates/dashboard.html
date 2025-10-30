@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}仪表盘 - K8S UI{% endblock %}
+{% block content %}
+<div class="card">
+    <h2 class="card-title">集群监控</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+        <div style="text-align: center;">
+            <canvas id="cpuChart" width="300" height="300"></canvas>
+            <h3 style="margin-top: 1rem; color: #555;">CPU 使用率</h3>
+        </div>
+        <div style="text-align: center;">
+            <canvas id="memChart" width="300" height="300"></canvas>
+            <h3 style="margin-top: 1rem; color: #555;">内存使用率</h3>
+        </div>
+        <div style="text-align: center;">
+            <canvas id="diskChart" width="300" height="300"></canvas>
+            <h3 style="margin-top: 1rem; color: #555;">磁盘使用率</h3>
+        </div>
+    </div>
+</div>
+
+<script>
+function drawChart(canvasId, percent, color) {
+    const canvas = document.getElementById(canvasId);
+    const ctx = canvas.getContext('2d');
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const radius = 100;
+    
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+    ctx.strokeStyle = '#f0f0f0';
+    ctx.lineWidth = 20;
+    ctx.stroke();
+    
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, -0.5 * Math.PI, (-0.5 + 2 * percent / 100) * Math.PI);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 20;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+    
+    ctx.font = 'bold 40px Arial';
+    ctx.fillStyle = '#333';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(percent.toFixed(1) + '%', centerX, centerY);
+}
+
+function updateMetrics() {
+    fetch('/api/metrics/')
+        .then(res => res.json())
+        .then(data => {
+            drawChart('cpuChart', data.cpu_percent, '#667eea');
+            drawChart('memChart', data.memory.percent, '#f093fb');
+            drawChart('diskChart', data.disk.percent, '#4facfe');
+        });
+}
+
+updateMetrics();
+setInterval(updateMetrics, 5000);
+</script>
+{% endblock %}
+

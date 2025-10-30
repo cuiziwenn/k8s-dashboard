@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}PVC管理{% endblock %}
+{% block content %}
+<div class="card">
+    <h2 class="card-title">PVC 管理</h2>
+    <div style="margin-bottom: 2rem;">
+        <label>选择命名空间：</label>
+        <select onchange="location.href='?namespace='+this.value" style="padding: 0.5rem; border-radius: 6px; border: 2px solid #e0e0e0;">
+            {% for ns in namespaces %}
+            <option value="{{ ns.metadata.name }}" {% if ns.metadata.name == current_namespace %}selected{% endif %}>
+                {{ ns.metadata.name }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>名称</th>
+                <th>状态</th>
+                <th>容量</th>
+                <th>访问模式</th>
+                <th>StorageClass</th>
+                <th>创建时间</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pvc in pvcs %}
+            <tr>
+                <td><strong>{{ pvc.metadata.name }}</strong></td>
+                <td><span class="status-badge status-running">{{ pvc.status.phase }}</span></td>
+                <td>{{ pvc.spec.resources.requests.storage }}</td>
+                <td>{{ pvc.spec.access_modes|join:", " }}</td>
+                <td>{{ pvc.spec.storage_class_name|default:"-" }}</td>
+                <td>{{ pvc.metadata.creation_timestamp|date:"Y-m-d H:i:s" }}</td>
+                <td>
+                    <a href="/pvcs/delete/{{ current_namespace }}/{{ pvc.metadata.name }}/" 
+                       class="btn btn-danger" onclick="return confirm('确认删除?')">删除</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" style="text-align: center; color: #999;">暂无数据</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -247,22 +247,50 @@ spec:
     targetPort: 8000
   type: ClusterIP
 ---
+#apiVersion: networking.k8s.io/v1
+#kind: Ingress
+#metadata:
+#  name: k8s-ui-ingress
+#  namespace: apps 
+#  annotations:
+#    kubesphere.io/creator: admin
+#    nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+#      #nginx.ingress.kubernetes.io/rewrite-target: /
+#
+#spec:
+#  ingressClassName: nginx
+#  tls:
+#    - hosts:
+#        - k8s.svss.cn
+#      secretName: ingress-secret
+#  rules:
+#  - host: k8s.svss.cn
+#    http:
+#      paths:
+#      - path: /
+#        pathType: Prefix
+#        backend:
+#          service:
+#            name: k8s-ui-svc
+#            port:
+#              number: 80
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: k8s-ui-ingress
-  namespace: apps 
+  namespace: apps  # 注意命名空间是 apps
   annotations:
-    kubesphere.io/creator: admin
-    nginx.ingress.kubernetes.io/ssl-redirect: 'true'
-    nginx.ingress.kubernetes.io/rewrite-target: /
-
+    kubernetes.io/ingress.class: "nginx"
+    # 关键配置：禁用 SSL 重定向
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
+    # 其他有用的配置
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
 spec:
-  ingressClassName: ingress-secret
-  tls:
-    - hosts:
-        - certd.svss.cn
-      secretName: ingress-secret
   rules:
   - host: k8s.svss.cn
     http:

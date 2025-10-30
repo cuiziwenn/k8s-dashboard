@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}PV管理{% endblock %}
+{% block content %}
+<div class="card">
+    <h2 class="card-title">PV 管理</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>名称</th>
+                <th>状态</th>
+                <th>容量</th>
+                <th>访问模式</th>
+                <th>回收策略</th>
+                <th>创建时间</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pv in pvs %}
+            <tr>
+                <td><strong>{{ pv.metadata.name }}</strong></td>
+                <td><span class="status-badge status-running">{{ pv.status.phase }}</span></td>
+                <td>{{ pv.spec.capacity.storage }}</td>
+                <td>{{ pv.spec.access_modes|join:", " }}</td>
+                <td>{{ pv.spec.persistent_volume_reclaim_policy }}</td>
+                <td>{{ pv.metadata.creation_timestamp|date:"Y-m-d H:i:s" }}</td>
+                <td>
+                    <a href="/pvs/delete/{{ pv.metadata.name }}/" 
+                       class="btn btn-danger" onclick="return confirm('确认删除?')">删除</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" style="text-align: center; color: #999;">暂无数据</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
