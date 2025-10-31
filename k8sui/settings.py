@@ -9,6 +9,20 @@ DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = ['*']
 
+# CSRF 配置
+CSRF_TRUSTED_ORIGINS = [
+    'http://k8s.domain.com',
+    'https://k8s.domain.com',
+    'http://*.domain.com',
+    'https://*.domain.com',
+]
+
+# 如果在 Kubernetes 中运行，添加以下配置
+CSRF_COOKIE_SECURE = False  # 如果使用 HTTP，设置为 False
+SESSION_COOKIE_SECURE = False  # 如果使用 HTTP，设置为 False
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SAMESITE = 'Lax'
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -27,13 +41,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'dashboard.middleware.PasswordChangeMiddleware',  # 添加密码检查中间件
 ]
-
-# Session 配置
-SESSION_COOKIE_AGE = 2592000  # 30天
-SESSION_SAVE_EVERY_REQUEST = False
-SESSION_COOKIE_NAME = 'k8sui_sessionid'
 
 ROOT_URLCONF = 'k8sui.urls'
 

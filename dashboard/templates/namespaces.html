@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}命名空间管理{% endblock %}
+{% block content %}
+<div class="card">
+    <h2 class="card-title">命名空间管理</h2>
+    <form method="post" style="margin-bottom: 2rem;">
+        {% csrf_token %}
+        <input type="text" name="name" placeholder="输入命名空间名称" style="padding: 0.8rem; border: 2px solid #e0e0e0; border-radius: 6px; margin-right: 1rem; width: 300px;">
+        <button type="submit" class="btn btn-primary">创建命名空间</button>
+    </form>
+    <table>
+        <thead>
+            <tr>
+                <th>名称</th>
+                <th>状态</th>
+                <th>创建时间</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ns in namespaces %}
+            <tr>
+                <td><strong>{{ ns.metadata.name }}</strong></td>
+                <td><span class="status-badge status-running">{{ ns.status.phase }}</span></td>
+                <td>{{ ns.metadata.creation_timestamp|date:"Y-m-d H:i:s" }}</td>
+                <td>
+                    {% if ns.metadata.name not in "default,kube-system,kube-public,kube-node-lease" %}
+                    <a href="/namespaces/delete/{{ ns.metadata.name }}/" class="btn btn-danger" onclick="return confirm('确认删除?')">删除</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

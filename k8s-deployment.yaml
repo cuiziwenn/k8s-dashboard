@@ -6,11 +6,11 @@ metadata:
 type: Opaque
 stringData:
   # 修改为你的 MySQL 连接信息
-  db-host: mysql-service.apps.svc.cluster.local  # MySQL 服务地址（格式：服务名.命名空间.svc.cluster.local）
+  db-host: mysql-service.default.svc.cluster.local  # MySQL 服务地址（格式：服务名.命名空间.svc.cluster.local）
   db-port: "3306"
   db-name: k8sui  # 数据库名（需要提前创建）
   db-user: k8sui  # 数据库用户
-  db-password: Cuiziwen@123  # 数据库密码
+  db-password: k8sui  # 数据库密码
 ---
 apiVersion: v1
 kind: Secret
@@ -21,7 +21,7 @@ type: Opaque
 stringData:
   # 管理员登录信息
   admin-username: admin
-  admin-email: c302894887@163.com
+  admin-email: admin@admin.com
   admin-password: admin # 修改为你想要的密码
 ---
 apiVersion: v1
@@ -35,7 +35,7 @@ data:
     CREATE DATABASE IF NOT EXISTS k8sui CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
     
     -- 创建用户（如果不存在）
-    CREATE USER IF NOT EXISTS 'k8sui'@'%' IDENTIFIED BY 'Cuiziwen@123';
+    CREATE USER IF NOT EXISTS 'k8sui'@'%' IDENTIFIED BY 'k8sui';
     
     -- 授权
     GRANT ALL PRIVILEGES ON k8sui.* TO 'k8sui'@'%';
@@ -106,7 +106,7 @@ spec:
               name: k8s-ui-db
               key: db-port
         - name: MYSQL_ROOT_PASSWORD
-          value: "Cuiziwen@123"  # 修改为你的 MySQL root 密码
+          value: "your_root_password"  # 修改为你的 MySQL root 密码
         volumeMounts:
         - name: init-script
           mountPath: /scripts
@@ -158,7 +158,7 @@ spec:
               key: db-port
       containers:
       - name: k8s-ui
-        image: registry.cn-hangzhou.aliyuncs.com/github_actions/k8s-ui:v1.1
+        image: registry.cn-hangzhou.aliyuncs.com/github_actions/k8s-ui:v1.2
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8000
@@ -258,10 +258,10 @@ metadata:
     nginx.ingress.kubernetes.io/rewrite-target: /
 
 spec:
-  ingressClassName: ingress-secret
+  ingressClassName: nginx
   tls:
     - hosts:
-        - certd.svss.cn
+        - k8s.svss.cn
       secretName: ingress-secret
   rules:
   - host: k8s.svss.cn
